@@ -43,6 +43,10 @@ def test(file_path: Annotated[str, typer.Argument] = "agentforge/tests"):
     print("\nSUMMARY")
     print(f"PASSED: {passed_count}")
     print(f"FAILED: {failed_count}")
+    
+    if failed_count > 0:
+        raise SystemExit(1)
+    raise SystemExit(0)
 
 if __name__ == "__main__":
     app()
