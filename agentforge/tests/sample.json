@@ -5,5 +5,15 @@
       "role": "user",
       "content": "I want a refund"
     }
+  ],
+  "rules": [
+    {
+      "type": "must_not_contain",
+      "value": ["password"]
+    },
+    {
+      "type": "must_contain",
+      "value": ["response"]
+    }
   ]
 }
