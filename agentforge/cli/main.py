@@ -1,37 +1,45 @@
 import typer
 
-from agentforge.cli.core.loader import load_test_file
+from agentforge.cli.core.loader import (load_test_files, load_test_file)
 from agentforge.cli.core.executor import call_agent
 from agentforge.cli.core.evaluator import evaluate
 
 app = typer.Typer()
 
 
-
 @app.command()
-def test(file_path: str):
-    # Load test file
-    data = load_test_file(file_path)
-    
-    
-    # Extract the conversation and rules
-    conversation = data["conversation"]
-    rules = data["rules"]
+def test(file_path: str = "tests"):
+    agent_live_url = "https://6a0ebe061736097c360a69e8.mockapi.io/chat/chat"
 
-    url = "https://6a0ebe061736097c360a69e8.mockapi.io/chat/chat"
+    files = load_test_files(file_path)
 
-    reply = call_agent(url, conversation)
-    passed = evaluate(reply, rules)
+    passed_count = 0
+    failed_count = 0
 
-    print("\nAgent response:\n")
-    print(reply)
+    for file in files:
 
-    print("\nResult:\n")
-    if passed:
-        print("PASS")
-    else:
-        print("FAIL")
+        # Load test file
+        data = load_test_file(file)
 
+        # Extract the conversation and rules
+        conversation = data["conversation"]
+        rules = data["rules"]
+
+        reply = call_agent(agent_live_url, conversation)
+        passed = evaluate(reply, rules)
+
+        print(f"\nTEST FILE: {file}")
+
+        if passed:
+            passed_count += 1
+            print("STATUS: PASS")
+        else:
+            failed_count += 1
+            print("STATUS: FAIL")
+
+    print("\nSUMMARY")
+    print(f"PASSED: {passed_count}")
+    print(f"FAILED: {failed_count}")
 
 if __name__ == "__main__":
     app()
