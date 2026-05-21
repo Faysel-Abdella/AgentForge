@@ -7,7 +7,7 @@ def load_test_files(path: str):
     test_files = []
     
     path_object = Path(path)
-    
+        
     # A single file
     if path_object.is_file():
         return [str(path_object)]
@@ -15,6 +15,8 @@ def load_test_files(path: str):
     # Folder
     for file in path_object.glob("*.json"):
         test_files.append(str(file))
+        
+    return test_files    
     
 
 def load_test_file(file_path: str):

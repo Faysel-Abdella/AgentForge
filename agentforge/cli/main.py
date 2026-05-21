@@ -1,4 +1,5 @@
 import typer
+from typing import Annotated
 
 from agentforge.cli.core.loader import (load_test_files, load_test_file)
 from agentforge.cli.core.executor import call_agent
@@ -8,10 +9,12 @@ app = typer.Typer()
 
 
 @app.command()
-def test(file_path: str = "tests"):
+def test(file_path: Annotated[str, typer.Argument] = "agentforge/tests"):
     agent_live_url = "https://6a0ebe061736097c360a69e8.mockapi.io/chat/chat"
 
     files = load_test_files(file_path)
+    
+    print("Files", files)
 
     passed_count = 0
     failed_count = 0
