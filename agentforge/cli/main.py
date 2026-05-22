@@ -5,15 +5,16 @@ from agentforge.cli.core.loader import (load_test_files, load_test_file)
 from agentforge.cli.core.executor import call_agent
 from agentforge.cli.core.evaluator import evaluate
 
-app = typer.Typer()
+from agentforge.cli.core.scenario_generator import generate_scenarios
 
+app = typer.Typer()
 
 @app.command()
 def test(file_path: Annotated[str, typer.Argument] = "agentforge/tests"):
     agent_live_url = "https://6a0ebe061736097c360a69e8.mockapi.io/chat/chat"
 
     files = load_test_files(file_path)
-    
+
     print("Files", files)
 
     passed_count = 0
@@ -24,26 +25,32 @@ def test(file_path: Annotated[str, typer.Argument] = "agentforge/tests"):
         # Load test file
         data = load_test_file(file)
 
-        # Extract the conversation and rules
-        conversation = data["conversation"]
-        rules = data["rules"]
+        # Extract the goal and the risks
+        domain = data["domain"]
+        user_goal = data["user_goal"]
+        risk_focus = data["risk_focus"]
 
-        reply = call_agent(agent_live_url, conversation)
-        passed = evaluate(reply, rules)
+        # Get testing scenarios based on goal and risks
+        scenarios = generate_scenarios(domain, user_goal, risk_focus)
+        
+        print(scenarios)
 
-        print(f"\nTEST FILE: {file}")
+    #     reply = call_agent(agent_live_url, conversation)
+    #     passed = evaluate(reply, rules)
 
-        if passed:
-            passed_count += 1
-            print("STATUS: PASS")
-        else:
-            failed_count += 1
-            print("STATUS: FAIL")
+    #     print(f"\nTEST FILE: {file}")
 
-    print("\nSUMMARY")
-    print(f"PASSED: {passed_count}")
-    print(f"FAILED: {failed_count}")
-    
+    #     if passed:
+    #         passed_count += 1
+    #         print("STATUS: PASS")
+    #     else:
+    #         failed_count += 1
+    #         print("STATUS: FAIL")
+
+    # print("\nSUMMARY")
+    # print(f"PASSED: {passed_count}")
+    # print(f"FAILED: {failed_count}")
+
     if failed_count > 0:
         raise SystemExit(1)
     raise SystemExit(0)
