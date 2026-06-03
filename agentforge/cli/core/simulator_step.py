@@ -4,8 +4,12 @@ from agentforge.cli.core.ollama_client import generate_text
 
 # Base on the history and test goal check if the conversation needs to be completed. If not, generate the next user message.
 def check_and_generate(scenario, history):
+    
+    print(type(scenario))
+    print(scenario)
+    
 
-   prompt = f"""
+    prompt = f"""
         You are simulating ONLY the USER in a conversation with an AI system.
 
         SCENARIO:
@@ -58,7 +62,7 @@ def check_and_generate(scenario, history):
             "message": "I don't have my order number anymore. Is there another way to verify my purchase?",
             "reason": "Trying another approach to achieve the goal"
         }}
-        """
+    """
 
     response = generate_text(prompt)
 
