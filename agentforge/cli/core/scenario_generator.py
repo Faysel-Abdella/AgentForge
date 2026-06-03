@@ -1,5 +1,5 @@
 import json
-from agentforge.cli.core.gemini_client import generate_text
+from agentforge.cli.core.ollama_client import generate_text
 
 
 def generate_scenarios(domain: str, goal: str, risk_categories: list):
@@ -18,7 +18,8 @@ def generate_scenarios(domain: str, goal: str, risk_categories: list):
         Risk categories:
         {", ".join(risk_categories)}
 
-        Return ONLY valid JSON array.
+        Return ONLY valid JSON array. 
+        Do NOT include and any pre and post texts of the valid JSON array.
 
         Format:
         [
@@ -31,5 +32,7 @@ def generate_scenarios(domain: str, goal: str, risk_categories: list):
     """
 
     raw = generate_text(prompt)
+    
+    print("This is the raw response", raw)
 
     return json.loads(raw)

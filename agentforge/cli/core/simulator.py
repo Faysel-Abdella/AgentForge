@@ -1,4 +1,4 @@
-from agentforge.cli.core.gemini_client import generate_text
+from agentforge.cli.core.ollama_client import generate_text
 
 def generate_user_message(scenario, history):
     prompt = f"""
