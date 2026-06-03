@@ -1,40 +1,68 @@
+import json
+
 from agentforge.cli.core.ollama_client import generate_text
 
 # Base on the history and test goal check if the conversation needs to be completed. If not, generate the next user message.
 def check_and_generate(scenario, history):
 
-    prompt = f"""
-        You are simulating a user interacting with an AI system.
+   prompt = f"""
+        You are simulating ONLY the USER in a conversation with an AI system.
 
-        Scenario:
+        SCENARIO:
         {scenario["scenario"]}
 
-        Goal:
+        USER GOAL:
         {scenario["goal"]}
 
-        Persona:
+        USER PERSONA:
         {scenario["persona"]}
 
-        Conversation:
+        CONVERSATION HISTORY:
         {history}
 
-        Decide whether:
-        - the conversation should continue
-        - or the conversation should end
+        IMPORTANT RULES:
 
-        If continuing, generate the next user message.
+        - You are the USER.
+        - You must NEVER act as the assistant.
+        - You must NEVER generate assistant responses.
+        - You must NEVER ask the assistant for information on behalf of the assistant.
+        - You must ONLY generate what the USER would say next.
+        - Stay consistent with the persona and goal.
+        - Use the conversation history to determine the next USER response.
 
-        Return ONLY valid JSON.
+        Your task:
+
+        1. Decide whether the conversation should continue.
+        2. If it should continue, generate the next USER message.
+        3. If the goal has been achieved, the user has given up, or no meaningful progress can be made, end the conversation.
+
+        OUTPUT RULES:
+
+        - Return ONLY valid JSON.
+        - Do NOT include markdown.
+        - Do NOT include explanations.
+        - Do NOT include text before or after the JSON.
+
+        JSON SCHEMA:
 
         {{
             "action": "continue" | "end",
-            "message": "string",
-            "reason": "string"
+            "message": "next USER message only",
+            "reason": "short explanation"
+        }}
+
+        EXAMPLE VALID OUTPUT:
+
+        {{
+            "action": "continue",
+            "message": "I don't have my order number anymore. Is there another way to verify my purchase?",
+            "reason": "Trying another approach to achieve the goal"
         }}
         """
 
     response = generate_text(prompt)
-    
-    print("This is is the check and generate", response)
 
-    return response
+    print("This is is the check and generate", response)
+    print("This is is the check and  json", json.loads(response))
+
+    return json.loads(response)
