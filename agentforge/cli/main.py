@@ -1,5 +1,6 @@
 import typer
 from typing import Annotated
+import uuid
 
 from agentforge.cli.core.loader import (load_test_files, load_test_file)
 from agentforge.cli.core.executor import call_agent
@@ -7,7 +8,7 @@ from agentforge.cli.core.evaluator import evaluate
 
 from agentforge.cli.core.scenario_generator import generate_scenarios
 from agentforge.cli.core.simulator import generate_user_message
-from agentforge.cli.core.check_conversation_continue import check_conversation_continue
+from agentforge.cli.core.simulator_step import check_conversation_continue
 
 app = typer.Typer()
 
@@ -38,10 +39,11 @@ def test(file_path: Annotated[str, typer.Argument] = "agentforge/tests"):
         for scenario in scenarios:
             history = []
             keep_conversation = True
+            session_id = str(uuid.uuid4())
 
             while keep_conversation: 
-                user_message = generate_user_message(scenario, [])
-                reply = call_agent(agent_live_url, user_message)
+                user_message = generate_user_message(scenario, history)
+                reply = call_agent(agent_live_url, user_message, session_id)
 
                 history.append({"role": "user", "content": user_message})
                 history.append({"role": "assistant", "content": reply}) 
