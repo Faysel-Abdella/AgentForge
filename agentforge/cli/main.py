@@ -2,15 +2,15 @@ import typer
 from typing import Annotated
 import uuid
 
-from agentforge.cli.core.loader import (load_test_files, load_test_file)
+from agentforge.cli.core.loader import load_test_files, load_test_file
 from agentforge.cli.core.executor import call_agent
 from agentforge.cli.core.evaluator import evaluate
 
 from agentforge.cli.core.scenario_generator import generate_scenarios
-from agentforge.cli.core.simulator import generate_user_message
-from agentforge.cli.core.simulator_step import check_conversation_continue
+from agentforge.cli.core.simulator_step import check_and_generate
 
 app = typer.Typer()
+
 
 @app.command()
 def test(file_path: Annotated[str, typer.Argument] = "agentforge/tests"):
@@ -38,25 +38,25 @@ def test(file_path: Annotated[str, typer.Argument] = "agentforge/tests"):
 
         for scenario in scenarios:
             history = []
-            keep_conversation = True
             session_id = str(uuid.uuid4())
 
-            while keep_conversation: 
-                user_message = generate_user_message(scenario, history)
+            while True:
+
+                # Check if the conversation needs to be completed. If not, generate the next user message.
+                result = check_and_generate(scenario, history)
+
+                if result["action"] == "end":
+                    break
+
+                user_message = result["message"]
+
                 reply = call_agent(agent_live_url, user_message, session_id)
 
                 history.append({"role": "user", "content": user_message})
-                history.append({"role": "assistant", "content": reply}) 
+                history.append({"role": "assistant", "content": reply})
 
-                # Check if the conversation needs to continue (Use LLM)
-                keep_conversation = check_conversation_continue(history)
-                
             # After all the turns for one scenario is completed, start the evaluation.
             evaluate(history)
-
-            
-
-        print(scenarios)
 
     #     reply = call_agent(agent_live_url, conversation)
     #     passed = evaluate(reply, rules)
@@ -77,6 +77,7 @@ def test(file_path: Annotated[str, typer.Argument] = "agentforge/tests"):
     if failed_count > 0:
         raise SystemExit(1)
     raise SystemExit(0)
+
 
 if __name__ == "__main__":
     app()
