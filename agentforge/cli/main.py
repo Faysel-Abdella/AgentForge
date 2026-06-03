@@ -7,6 +7,7 @@ from agentforge.cli.core.evaluator import evaluate
 
 from agentforge.cli.core.scenario_generator import generate_scenarios
 from agentforge.cli.core.simulator import generate_user_message
+from agentforge.cli.core.check_conversation_continue import check_conversation_continue
 
 app = typer.Typer()
 
@@ -33,20 +34,26 @@ def test(file_path: Annotated[str, typer.Argument] = "agentforge/tests"):
 
         # Get testing scenarios based on goal and risks
         scenarios = generate_scenarios(domain, user_goal, risk_focus)
-        
-        # for scenario in scenarios:
-        #     user_message = generate_user_message(scenario, [])
-        #     reply = call_agent(agent_live_url, user_message)
+
+        for scenario in scenarios:
+            history = []
+            keep_conversation = True
+
+            while keep_conversation: 
+                user_message = generate_user_message(scenario, [])
+                reply = call_agent(agent_live_url, user_message)
+
+                history.append({"role": "user", "content": user_message})
+                history.append({"role": "assistant", "content": reply}) 
+
+                # Check if the conversation needs to continue (Use LLM)
+                keep_conversation = check_conversation_continue(history)
+                
+            # After all the turns for one scenario is completed, start the evaluation.
+            evaluate(history)
+
             
-        #     # Here I want to evaluate the reply, how to evaluate ?
-        #     # Use llm-as-a-judge to evaluate = Take the user message, the reply 
-        #     # and the rules to evaluate against and call another llm to score or say PASS
-        #     # or FAIL
-            
-        #     # Maybe store the evaluation in an array to display later or show for
-        #     # each cases the result of the evaluation. 
-            
-        
+
         print(scenarios)
 
     #     reply = call_agent(agent_live_url, conversation)
