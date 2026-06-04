@@ -48,6 +48,8 @@ def generate_scenarios(domain: str, goal: str, risk_categories: list):
         ]
     """
 
-    raw = generate_text(prompt)
+    raw = generate_text(
+        prompt, [{{"scenario": "string", "goal": "string", "persona": "string"}}]
+    )
 
     return json.loads(raw)
