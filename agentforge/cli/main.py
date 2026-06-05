@@ -56,6 +56,8 @@ def test(file_path: Annotated[str, typer.Argument] = "agentforge/tests"):
 
                 history.append({"role": "user", "content": user_message})
                 history.append({"role": "assistant", "content": reply})
+                
+                print(f"This is the histiry {history}")
 
             # After all the turns for one scenario is completed, start the evaluation.
             evaluate(history)

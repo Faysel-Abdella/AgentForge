@@ -6,8 +6,7 @@ def call_agent(endpoint: str, messages: list, session_id: int):
 
         resposne.raise_for_status()
     except httpx.HTTPError as general_err:
-        print(f"A network error occurred {general_err}")
+        raise RuntimeError(f"A network error occurred {general_err}")
     else:
         data = resposne.json()
-
-    return data["response"]
+        return data["response"]
