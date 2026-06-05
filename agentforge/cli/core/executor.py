@@ -9,4 +9,5 @@ def call_agent(endpoint: str, messages: list, session_id: int):
         raise RuntimeError(f"A network error occurred {general_err}")
     else:
         data = resposne.json()
+        print("This is the agent response", data)
         return data["response"]

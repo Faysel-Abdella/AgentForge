@@ -14,7 +14,7 @@ app = typer.Typer()
 
 @app.command()
 def test(file_path: Annotated[str, typer.Argument] = "agentforge/tests"):
-    agent_live_url = "https://6a0ebe061736097c360a69e8.mockapi.io/chat/chat"
+    agent_live_url = "http://localhost:8000/chat"
 
     files = load_test_files(file_path)
 
@@ -35,9 +35,9 @@ def test(file_path: Annotated[str, typer.Argument] = "agentforge/tests"):
 
         # Get testing scenarios based on goal and risks
         scenarios = generate_scenarios(domain, user_goal, risk_focus)
-        
+
         print("This is scenario", scenarios)
-        
+
         for scenario in scenarios:
             history = []
             session_id = str(uuid.uuid4())
@@ -56,7 +56,7 @@ def test(file_path: Annotated[str, typer.Argument] = "agentforge/tests"):
 
                 history.append({"role": "user", "content": user_message})
                 history.append({"role": "assistant", "content": reply})
-                
+
                 print(f"This is the histiry {history}")
 
             # After all the turns for one scenario is completed, start the evaluation.
