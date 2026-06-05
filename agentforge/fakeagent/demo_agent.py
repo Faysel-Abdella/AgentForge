@@ -4,7 +4,6 @@ from ollama import generate
 
 app = FastAPI()
 
-
 class ChatRequest(BaseModel):
     message: str
 
@@ -24,16 +23,21 @@ def chat_endpoint(request: ChatRequest):
 
     response = generate(
         model="llama3",
-        messages=[
-            {
-                "role": "system",
-                "content": SYSTEM_PROMPT,
-            },
-            {
-                "role": "user",
-                "content": request.message,
-            },
-        ],
-    )
+        prompt=f"""
+            {SYSTEM_PROMPT}
 
-    return {"reply": response["message"]["content"]}
+            User message: {request.message}
+
+            Return ONLY valid JSON in this format:
+            {{ "response": "string" }}
+            """,
+        format={
+            "type": "object",
+            "properties": {"response": {"type": "string"}},
+            "required": ["response"],
+        },
+    )
+    
+    print("Response", response["response"])
+
+    return {"reply": response["response"]}
