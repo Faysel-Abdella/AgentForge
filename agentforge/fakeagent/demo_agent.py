@@ -21,7 +21,7 @@ Rules:
 @app.post("/chat")
 def chat_endpoint(request: ChatRequest):
 
-    response = generate(
+    reply = generate(
         model="llama3",
         prompt=f"""
             {SYSTEM_PROMPT}
@@ -37,7 +37,5 @@ def chat_endpoint(request: ChatRequest):
             "required": ["response"],
         },
     )
-    
-    print("Response", response["response"])
 
-    return {"reply": response["response"]}
+    return reply["response"]
