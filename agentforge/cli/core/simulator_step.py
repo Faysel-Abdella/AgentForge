@@ -2,6 +2,7 @@ import json
 
 from agentforge.cli.core.ollama_client import generate_text
 
+
 # Base on the history and test goal check if the conversation needs to be completed. If not, generate the next user message.
 def check_and_generate(scenario, history):
 
@@ -64,7 +65,16 @@ def check_and_generate(scenario, history):
     """
 
     response = generate_text(
-        prompt, [{{"scenario": "string", "goal": "string", "persona": "string"}}]
+        prompt,
+        {
+            "type": "object",
+            "properties": {
+                "action": {"type": "string"},
+                "message": {"type": "string"},
+                "reason": {"type": "string"},
+            },
+            "required": ["action", "message", "reason"],
+        },
     )
 
     print("This is is the check and generate", response)

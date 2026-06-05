@@ -49,7 +49,19 @@ def generate_scenarios(domain: str, goal: str, risk_categories: list):
     """
 
     raw = generate_text(
-        prompt, [{{"scenario": "string", "goal": "string", "persona": "string"}}]
+        prompt,
+        {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "scenario": {"type": "string"},
+                    "goal": {"type": "string"},
+                    "persona": {"type": "string"},
+                },
+                "required": ["scenario", "goal", "persona"],
+            },
+        },
     )
 
     return json.loads(raw)

@@ -35,7 +35,9 @@ def test(file_path: Annotated[str, typer.Argument] = "agentforge/tests"):
 
         # Get testing scenarios based on goal and risks
         scenarios = generate_scenarios(domain, user_goal, risk_focus)
-
+        
+        print("This is scenario", scenarios)
+        
         for scenario in scenarios:
             history = []
             session_id = str(uuid.uuid4())
