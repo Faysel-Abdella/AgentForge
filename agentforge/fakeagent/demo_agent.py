@@ -4,6 +4,7 @@ from ollama import generate
 
 app = FastAPI()
 
+
 class ChatRequest(BaseModel):
     message: str
 
@@ -38,4 +39,4 @@ def chat_endpoint(request: ChatRequest):
         },
     )
 
-    return reply["response"]
+    return {"response": reply["response"]}
