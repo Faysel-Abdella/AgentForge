@@ -116,8 +116,8 @@ def test(file_path: Annotated[str, typer.Argument()] = "agentforge/tests"):
 
             evaluation = evaluate(
                 test_definition=data,
-                history=history,
-                scenario=scenario,
+                conversation_history=history,
+                scenario=scenario.get("scenario", ""),
             )
 
             passed = evaluation.get("passed", False)
@@ -141,7 +141,7 @@ def test(file_path: Annotated[str, typer.Argument()] = "agentforge/tests"):
 
             console.print("\nEVALUATION", style="bold")
             try:
-                console.print_json(data=json.dumps(evaluation))
+                console.print_json(data=evaluation)
             except Exception:
                 console.print(evaluation)
 

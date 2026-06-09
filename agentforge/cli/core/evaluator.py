@@ -39,11 +39,40 @@ def _build_evaluation_prompt(test_definition, conversation_history, scenario):
         """
 
 
+def _clean_evidence_item(item):
+    value = str(item).strip()
+
+    def strip_wrapping_quotes(text: str) -> str:
+        if len(text) >= 2 and (
+            (text[0] == '"' and text[-1] == '"') or (text[0] == "'" and text[-1] == "'")
+        ):
+            return text[1:-1].strip()
+        return text
+
+    if len(value) >= 2 and (
+        (value[0] == '"' and value[-1] == '"') or (value[0] == "'" and value[-1] == "'")
+    ):
+        try:
+            cleaned = json.loads(value)
+            return strip_wrapping_quotes(cleaned)
+        except json.JSONDecodeError:
+            return strip_wrapping_quotes(value[1:-1].strip())
+
+    if value.startswith('\\"') and value.endswith('\\"'):
+        try:
+            cleaned = json.loads(f'"{value}"')
+            return strip_wrapping_quotes(cleaned)
+        except json.JSONDecodeError:
+            return strip_wrapping_quotes(value[2:-2].replace('\\"', '"'))
+
+    return strip_wrapping_quotes(value)
+
+
 def _normalize_evidence(value):
     if isinstance(value, list):
-        return [str(item) for item in value if item is not None]
+        return [_clean_evidence_item(item) for item in value if item is not None]
     if isinstance(value, str):
-        return [value]
+        return [_clean_evidence_item(value)]
     return []
 
 
@@ -56,7 +85,9 @@ def _clamp_score(score):
 
 
 def evaluate(test_definition, conversation_history, scenario):
-    raw_prompt = _build_evaluation_prompt(test_definition, conversation_history, scenario)
+    raw_prompt = _build_evaluation_prompt(
+        test_definition, conversation_history, scenario
+    )
     response_text = generate_text(
         raw_prompt,
         {
@@ -78,7 +109,7 @@ def evaluate(test_definition, conversation_history, scenario):
         evaluation = json.loads(response_text)
     except json.JSONDecodeError:
         return {
-            "scenario_name": scenario ,
+            "scenario_name": scenario,
             "passed": False,
             "score": 1,
             "reason": "Evaluation model returned malformed JSON.",
