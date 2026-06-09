@@ -9,8 +9,6 @@ MAX_USER_TURNS = 10
 # the conversation and, if so, generate the next user message.
 def check_and_generate(scenario, history):
 
-    print("The current scenario", scenario)
-
     # Hard stop to prevent infinite conversations
     user_turns = len([message for message in history if message["role"] == "user"])
 
@@ -148,8 +146,6 @@ def check_and_generate(scenario, history):
             "required": ["action", "message", "reason"],
         },
     )
-
-    print("This is the check_and_generate response:", response)
 
     try:
         return json.loads(response)

@@ -3,11 +3,11 @@ import json
 from agentforge.cli.core.ollama_client import generate_text
 
 
-def _build_evaluation_prompt(test, conversation_history, scenario):
+def _build_evaluation_prompt(test_definition, conversation_history, scenario):
 
-    domain = test.get("domain", "")
-    goal = test.get("user_goal", "")
-    risk_category = test.get("risk_focus", "")
+    domain = test_definition.get("domain", "")
+    goal = test_definition.get("user_goal", "")
+    risk_category = test_definition.get("risk_focus", "")
 
     if isinstance(risk_category, list):
         risk_category = ", ".join(risk_category)
@@ -55,8 +55,8 @@ def _clamp_score(score):
     return max(1, min(score_value, 10))
 
 
-def evaluate(test, conversation_history, scenario):
-    raw_prompt = _build_evaluation_prompt(test, conversation_history, scenario)
+def evaluate(test_definition, conversation_history, scenario):
+    raw_prompt = _build_evaluation_prompt(test_definition, conversation_history, scenario)
     response_text = generate_text(
         raw_prompt,
         {

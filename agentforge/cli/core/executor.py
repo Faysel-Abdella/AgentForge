@@ -19,8 +19,7 @@ def call_agent(endpoint: str, messages: list, session_id: int):
 
     else:
         data = resposne.json()
-        print("This is the agent response", data)
-
+        
         if isinstance(data, dict):
             return data.get("response", data)
         return data

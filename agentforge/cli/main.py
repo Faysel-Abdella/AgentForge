@@ -1,86 +1,169 @@
 import typer
-from typing import Annotated
 import uuid
+import json
+from typing import Annotated
 
 from agentforge.cli.core.loader import load_test_files, load_test_file
-from agentforge.cli.core.executor import call_agent
-from agentforge.cli.core.evaluator import evaluate
 
 from agentforge.cli.core.scenario_generator import generate_scenarios
+
 from agentforge.cli.core.simulator_step import check_and_generate
+
+from agentforge.cli.core.executor import call_agent
+
+from agentforge.cli.core.evaluator import evaluate
+from rich.console import Console
+from rich.panel import Panel
+from rich import json as rich_json
+
+console = Console()
 
 app = typer.Typer()
 
 
+MAX_TURNS_PER_SCENARIO = 2
+
+
 @app.command()
-def test(file_path: Annotated[str, typer.Argument] = "agentforge/tests"):
+def test(file_path: Annotated[str, typer.Argument()] = "agentforge/tests"):
     agent_live_url = "http://localhost:8000/chat"
 
     files = load_test_files(file_path)
 
-    print("Files", files)
+    console.print(f"\nLoaded {len(files)} test file(s)\n", style="bold cyan")
 
+    total_scenarios = 0
     passed_count = 0
     failed_count = 0
 
+    all_results = []
+
     for file in files:
 
-        # Load test file
+        console.rule(f"TEST FILE: {file}")
+
         data = load_test_file(file)
 
-        # Extract the goal and the risks
         domain = data["domain"]
         user_goal = data["user_goal"]
         risk_focus = data["risk_focus"]
 
-        # Get testing scenarios based on goal and risks
-        scenarios = generate_scenarios(domain, user_goal, risk_focus)
+        scenarios = generate_scenarios(
+            domain,
+            user_goal,
+            risk_focus,
+        )
 
-        print("This is scenario", scenarios)
+        console.print(f"Generated {len(scenarios)} scenarios\n", style="cyan")
 
-        for scenario in scenarios:
+        for scenario_index, scenario in enumerate(scenarios, start=1):
+
+            total_scenarios += 1
+
+            console.rule(f"Scenario #{scenario_index}: {scenario['scenario']}")
+
             history = []
+
             session_id = str(uuid.uuid4())
 
-            while True:
+            turns = 0
 
-                # Check if the conversation needs to be completed. If not, generate the next user message.
-                result = check_and_generate(scenario, history)
+            while turns < MAX_TURNS_PER_SCENARIO:
+
+                result = check_and_generate(
+                    scenario,
+                    history,
+                )
 
                 if result["action"] == "end":
+                    print(f"Conversation ended: {result['reason']}")
                     break
 
                 user_message = result["message"]
 
-                reply = call_agent(agent_live_url, user_message, session_id)
+                console.print(Panel(user_message, title="USER", style="bold white"))
 
-                history.append({"role": "user", "content": user_message})
-                history.append({"role": "assistant", "content": reply})
+                assistant_reply = call_agent(
+                    agent_live_url,
+                    user_message,
+                    session_id,
+                )
 
-                print(f"This is the histiry {history}")
+                console.print(
+                    Panel(assistant_reply, title="ASSISTANT", style="bold green")
+                )
 
-            # After all the turns for one scenario is completed, start the evaluation.
-            evaluation_result = evaluate(data, history, scenario.get("scenario", ""))
-            print("Evaluation result:", evaluation_result)
+                history.append(
+                    {
+                        "role": "user",
+                        "content": user_message,
+                    }
+                )
 
-    #     reply = call_agent(agent_live_url, conversation)
-    #     passed = evaluate(reply, rules)
+                history.append(
+                    {
+                        "role": "assistant",
+                        "content": assistant_reply,
+                    }
+                )
 
-    #     print(f"\nTEST FILE: {file}")
+                turns += 1
 
-    #     if passed:
-    #         passed_count += 1
-    #         print("STATUS: PASS")
-    #     else:
-    #         failed_count += 1
-    #         print("STATUS: FAIL")
+            if turns >= MAX_TURNS_PER_SCENARIO:
+                console.print(
+                    f"Reached max turns ({MAX_TURNS_PER_SCENARIO})", style="yellow"
+                )
 
-    # print("\nSUMMARY")
-    # print(f"PASSED: {passed_count}")
-    # print(f"FAILED: {failed_count}")
+            evaluation = evaluate(
+                test_definition=data,
+                history=history,
+                scenario=scenario,
+            )
+
+            passed = evaluation.get("passed", False)
+
+            if passed:
+                passed_count += 1
+                status = "PASS"
+            else:
+                failed_count += 1
+                status = "FAIL"
+
+            scenario_result = {
+                "file": file,
+                "scenario": scenario["scenario"],
+                "status": status,
+                "evaluation": evaluation,
+                "history": history,
+            }
+
+            all_results.append(scenario_result)
+
+            console.print("\nEVALUATION", style="bold")
+            try:
+                console.print_json(data=json.dumps(evaluation))
+            except Exception:
+                console.print(evaluation)
+
+            if passed:
+                console.print(f"\nRESULT: {status}\n", style="bold green")
+            else:
+                console.print(f"\nRESULT: {status}\n", style="bold red")
+
+    console.print("\n")
+    console.rule("FINAL SUMMARY")
+
+    console.print(f"Total scenarios: {total_scenarios}")
+    console.print(f"Passed: {passed_count}")
+    console.print(f"Failed: {failed_count}")
+
+    success_rate = (passed_count / total_scenarios) * 100 if total_scenarios > 0 else 0
+
+    console.print(f"Success Rate: {success_rate:.2f}%")
 
     if failed_count > 0:
         raise SystemExit(1)
+
     raise SystemExit(0)
 
 
