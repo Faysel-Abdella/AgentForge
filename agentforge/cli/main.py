@@ -60,7 +60,8 @@ def test(file_path: Annotated[str, typer.Argument] = "agentforge/tests"):
                 print(f"This is the histiry {history}")
 
             # After all the turns for one scenario is completed, start the evaluation.
-            evaluate(history, [])
+            evaluation_result = evaluate(data, history, scenario.get("scenario", ""))
+            print("Evaluation result:", evaluation_result)
 
     #     reply = call_agent(agent_live_url, conversation)
     #     passed = evaluate(reply, rules)
